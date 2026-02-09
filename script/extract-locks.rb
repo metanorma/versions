@@ -80,8 +80,9 @@ module MetanormaGemfileLocks
       SCRIPT
 
       # Run container with the extraction script
+      # Override ENTRYPOINT to run our script instead of the default metanorma command
       cmd = <<~CMD
-        docker run --rm #{DOCKER_IMAGE}:#{version} sh -c '#{extract_script}'
+        docker run --rm --entrypoint sh #{DOCKER_IMAGE}:#{version} -c '#{extract_script}'
       CMD
 
       output = `#{cmd}`
