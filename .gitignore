@@ -1,0 +1,6 @@
+*.swp
+*.tmp
+*.log
+.DS_Store
+Gemfile.lock
+/v*/Gemfile.lock.bak

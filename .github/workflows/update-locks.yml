@@ -1,0 +1,81 @@
+name: Update Gemfile.lock Archives
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-locks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: List available versions on Docker Hub
+        run: |
+          echo "Available versions on Docker Hub:"
+          bundle exec rake list
+
+      - name: Extract all lock files from Docker Hub
+        run: |
+          bundle exec rake extract
+
+      - name: Generate index.yaml
+        run: |
+          bundle exec rake generate:index
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git add --dry-run --ignore-removal
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected:"
+            git status --short
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          fi
+
+      - name: Create Pull Request
+        if: steps.git-check.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            chore: update Gemfile.lock archives from Docker Hub
+
+            - Automated daily update
+            - Fetched all available versions from Docker Hub
+            - Generated index.yaml
+          branch: update/gemfile-locks
+          title: "chore: update Gemfile.lock archives from Docker Hub"
+          body: |
+            ## Summary
+            Automated daily update of Gemfile.lock archives from Docker Hub.
+
+            ## Changes
+            - Fetched all available versions from metanorma/metanorma Docker Hub
+            - Updated Gemfile and Gemfile.lock files for each version
+            - Generated/updated index.yaml with version metadata
+
+            ## Checklist
+            - [ ] All versions extracted successfully
+            - [ ] index.yaml is up to date
+          labels: |
+            automated
+            dependencies
+          delete-branch: true
