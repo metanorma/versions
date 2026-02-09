@@ -36,11 +36,16 @@ jobs:
 
       - name: Extract all lock files from Docker Hub
         run: |
-          bundle exec rake extract
+          # Extract only first 5 versions for testing
+          bundle exec ruby script/extract-locks.rb -v1.14.0
+          bundle exec ruby script/extract-locks.rb -v1.14.1
+          bundle exec ruby script/extract-locks.rb -v1.14.2
+          bundle exec ruby script/extract-locks.rb -v1.14.3
+          bundle exec ruby script/extract-locks.rb -v1.14.4
 
       - name: Generate index.yaml
         run: |
-          bundle exec rake generate:index
+          bundle exec rake generate_index
 
       - name: Check for changes
         id: git-check

@@ -120,4 +120,4 @@ desc "List available versions"
 task list: "list:versions"
 
 desc "Generate index.yaml"
-task "generate:index": "generate:index"
+task generate_index: "generate:index"
