@@ -92,7 +92,12 @@ namespace :generate do
         "latest_version" => latest_version
       },
       "missing_versions" => missing,
-      "versions" => local_versions
+      "versions" => local_versions.map { |v|
+        {
+          "version" => v[:version],
+          "updated_at" => v[:updated_at]
+        }
+      }
     }
 
     File.write("index.yaml", index.to_yaml)
