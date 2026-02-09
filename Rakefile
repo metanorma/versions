@@ -62,36 +62,41 @@ namespace :generate do
 
     extractor = MetanormaGemfileLocks::Extractor.new
     remote_versions = extractor.fetch_docker_hub_versions
-    local_versions = Dir.glob("v*").sort.map { |d| [File.basename(d)[1..], File.stat(d).mtime] }
-    local_version_names = local_versions.map(&:first)
 
-    # Group versions by major.minor
-    grouped = {}
-    local_versions.each do |version, mtime|
-      major_minor = version.split(".")[0..1].join(".")
-      grouped[major_minor] ||= []
-      grouped[major_minor] << { version: version, updated_at: mtime.iso8601 }
-    end
+    # Get local versions, validate they have both Gemfile and Gemfile.lock
+    local_versions = Dir.glob("v*").sort.map do |d|
+      version = File.basename(d)[1..]
+      gemfile = File.join(d, "Gemfile")
+      gemfile_lock = File.join(d, "Gemfile.lock")
 
-    # Sort within groups
-    grouped.each { |_, v| v.sort_by! { |x| x[:version].split(".").map(&:to_i) } }
+      # Only include if both files exist
+      if File.file?(gemfile) && File.file?(gemfile_lock)
+        { version: version, updated_at: File.stat(d).mtime.iso8601 }
+      else
+        warn "Skipping v#{version}: missing Gemfile or Gemfile.lock"
+        nil
+      end
+    end.compact
 
-    missing = remote_versions - local_version_names
+    # Sort by version
+    local_versions.sort_by! { |v| v[:version].split(".").map(&:to_i) }
+
+    latest_version = local_versions.last&.dig(:version)
+    missing = remote_versions - local_versions.map { |v| v[:version] }
 
     index = {
       "metadata" => {
         "generated_at" => Time.now.utc.iso8601,
         "local_count" => local_versions.size,
         "remote_count" => remote_versions.size,
-        "missing_count" => missing.size,
-        "latest_version" => local_version_names.last
+        "latest_version" => latest_version
       },
       "missing_versions" => missing,
-      "versions" => grouped.sort.reverse.to_h
+      "versions" => local_versions
     }
 
     File.write("index.yaml", index.to_yaml)
-    puts "Generated index.yaml"
+    puts "Generated index.yaml with #{local_versions.size} versions"
   end
 end
 

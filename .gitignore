@@ -2,6 +2,6 @@
 *.tmp
 *.log
 .DS_Store
-Gemfile.lock
+/Gemfile.lock
 /vendor/
 /v*/Gemfile.lock.bak
