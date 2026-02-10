@@ -4,7 +4,21 @@ on:
   schedule:
     # Run daily at 00:00 UTC
     - cron: '0 0 * * *'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Extraction mode'
+        required: false
+        default: 'incremental'
+        type: choice
+        options:
+          - incremental
+          - replace
+          - revamp
+      version:
+        description: 'Version to replace (required for replace mode)'
+        required: false
+        type: string
 
 # Concurrency: only allow one run at a time, cancel in-progress runs
 concurrency:
@@ -21,12 +35,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: '3.4'
           bundler-cache: true
 
       - name: List available versions on Docker Hub
@@ -34,11 +48,26 @@ jobs:
           echo "Available versions on Docker Hub:"
           bundle exec rake list
 
-      - name: Extract all lock files from Docker Hub
+      - name: Extract lock files from Docker Hub
+        env:
+          MODE: ${{ github.event.inputs.mode || 'incremental' }}
+          VERSION: ${{ github.event.inputs.version || '' }}
         run: |
-          # Extract all available versions
-          # Already extracted versions will be skipped automatically
-          bundle exec ruby script/extract-locks.rb --all
+          case "$MODE" in
+            incremental)
+              bundle exec ruby script/extract-locks.rb incremental
+              ;;
+            replace)
+              if [ -z "$VERSION" ]; then
+                echo "Error: version input required for replace mode"
+                exit 1
+              fi
+              bundle exec ruby script/extract-locks.rb replace "$VERSION"
+              ;;
+            revamp)
+              bundle exec ruby script/extract-locks.rb revamp
+              ;;
+          esac
 
       - name: Generate index.yaml
         run: |

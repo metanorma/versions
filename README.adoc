@@ -157,15 +157,41 @@ To update or extract lock files from Docker Hub:
 # Install dependencies
 bundle install
 
-# Extract all available versions
-rake extract:all
+# Extract only missing versions (incremental mode)
+bundle exec ruby script/extract-locks.rb incremental
+# Or using rake:
+bundle exec rake extract:incremental
 
-# Extract a specific version
-rake extract[1.14.4]
+# Replace a single version (replace mode)
+bundle exec ruby script/extract-locks.rb replace 1.14.4
+# Or using rake:
+bundle exec rake extract:replace[1.14.4]
+
+# Re-extract all versions (revamp mode)
+bundle exec ruby script/extract-locks.rb revamp
+# Or using rake:
+bundle exec rake extract:revamp
 
 # List available versions on Docker Hub
-rake list:versions
+bundle exec ruby script/extract-locks.rb list
+# Or using rake:
+bundle exec rake list:versions
+
+# Test extraction with 3 containers (for testing/index verification)
+bundle exec ruby script/extract-locks.rb test
+# Or using rake:
+bundle exec rake test:extract
 ----
+
+=== Extraction modes
+
+The extraction script supports three modes:
+
+incremental:: Extract only versions that are not present locally. This is the default mode and is used for daily scheduled runs.
+
+replace:: Re-extract a single version, replacing any existing files. Use this to fix corrupted or outdated extractions.
+
+revamp:: Re-extract all versions, replacing all existing files. Use this when the data model changes or you need to refresh all versions.
 
 The extraction script will:
 
