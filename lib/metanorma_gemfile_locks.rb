@@ -8,18 +8,39 @@ require "json"
 require "open-uri"
 require "yaml"
 
+require_relative "metanorma_gemfile_locks/logger"
+
 module MetanormaGemfileLocks
   DOCKER_IMAGE = "metanorma/metanorma".freeze
   VERSIONS_DIR = File.join(__dir__, "..", "v").freeze
   INDEX_PATH = File.join(File.dirname(VERSIONS_DIR), "index.yaml").freeze
 
+  # Docker Hub tag metadata from API
+  class TagInfo
+    attr_reader :name, :published_at
+
+    def initialize(name, published_at)
+      @name = name
+      @published_at = published_at
+    end
+  end
+
   # Represents a single version with its metadata
   class Version
-    attr_reader :number, :updated_at
+    attr_reader :number, :published_at, :parsed_at
 
-    def initialize(number, updated_at = nil)
+    # For backwards compatibility
+    alias updated_at published_at
+
+    def initialize(number, published_at: nil, parsed_at: nil, versions_dir: VERSIONS_DIR)
       @number = number
-      @updated_at = updated_at
+      @published_at = published_at
+      @parsed_at = parsed_at
+      @versions_dir = versions_dir
+    end
+
+    def versions_dir
+      @versions_dir || VERSIONS_DIR
     end
 
     def <=>(other)
@@ -31,7 +52,7 @@ module MetanormaGemfileLocks
     end
 
     def directory_path
-      @directory_path ||= File.join(File.dirname(VERSIONS_DIR), "v#{number}")
+      @directory_path ||= File.join(File.dirname(versions_dir), "v#{number}")
     end
 
     def gemfile_path
@@ -47,7 +68,7 @@ module MetanormaGemfileLocks
     end
 
     def to_h
-      { "version" => number, "updated_at" => updated_at }
+      { "version" => number, "published_at" => published_at, "parsed_at" => parsed_at }
     end
   end
 
@@ -65,17 +86,33 @@ module MetanormaGemfileLocks
     def load
       data = YAML.load_file(@path) || {}
       @metadata = data["metadata"] || {}
-      @versions = (data["versions"] || []).each_with_object({}) do |v, h|
-        h[v["version"]] = v["updated_at"]
+      @versions = {}
+
+      (data["versions"] || []).each do |v|
+        # Handle migration from old format
+        if v.key?("updated_at")
+          @versions[v["version"]] = { "published_at" => v["updated_at"], "parsed_at" => v["parsed_at"] }
+        else
+          @versions[v["version"]] = { "published_at" => v["published_at"], "parsed_at" => v["parsed_at"] }
+        end
       end
     end
 
+    def get_published_at(version_number)
+      @versions.dig(version_number, "published_at")
+    end
+
+    def get_parsed_at(version_number)
+      @versions.dig(version_number, "parsed_at")
+    end
+
+    # For backwards compatibility
     def get_updated_at(version_number)
-      @versions[version_number]
+      get_published_at(version_number)
     end
 
     def add_version(version)
-      @versions[version.number] = version.updated_at
+      @versions[version.number] = { "published_at" => version.published_at, "parsed_at" => version.parsed_at }
     end
 
     def latest_version
@@ -88,7 +125,7 @@ module MetanormaGemfileLocks
 
     def to_h(remote_count, missing_versions)
       versions_array = @versions.keys.sort_by { |v| v.split(".").map(&:to_i) }.map do |version|
-        { "version" => version, "updated_at" => @versions[version] }
+        { "version" => version, "published_at" => @versions[version]["published_at"], "parsed_at" => @versions[version]["parsed_at"] }
       end
 
       {
@@ -110,38 +147,112 @@ module MetanormaGemfileLocks
 
   # Extracts Gemfile and Gemfile.lock from Docker containers
   class Extractor
-    def initialize(index = nil)
+    ExtractionMode = %i[incremental replace revamp].freeze
+
+    def initialize(mode: :incremental, index: nil, versions_dir: VERSIONS_DIR, limit: nil)
+      @mode = mode || :incremental
       @index = index || Index.new
+      @tag_info_cache = {}
+      @versions_dir = versions_dir
+      @limit = limit
+    end
+
+    # Get the versions directory (allows custom output location)
+    def versions_dir
+      @versions_dir || VERSIONS_DIR
+    end
+
+    # Get index path based on versions directory
+    def index_path
+      File.join(File.dirname(versions_dir), "index.yaml")
     end
 
     # Fetch all version tags from Docker Hub
     def fetch_docker_hub_versions
       uri = URI("https://registry.hub.docker.com/v2/repositories/#{DOCKER_IMAGE}/tags?page_size=100")
-      versions = []
+      tag_info_list = []
 
       loop do
         data = JSON.parse(URI.open(uri).read)
         data["results"].each do |result|
           name = result["name"]
-          versions << name if name =~ /^\d+\.\d+\.\d+$/
+          if name =~ /^\d+\.\d+\.\d+$/
+            # Docker Hub API: tag_last_pushed is when tag was published
+            published_at = result["tag_last_pushed"]
+            tag_info_list << TagInfo.new(name, published_at)
+          end
         end
 
         break unless data["next"]
         uri = URI(data["next"])
       end
 
-      versions.sort_by { |v| v.split(".").map(&:to_i) }
+      tag_info_list.sort_by { |t| t.name.split(".").map(&:to_i) }
+    end
+
+    # Cache Docker Hub tag info for all versions
+    def cache_tag_info
+      @tag_info_cache = fetch_docker_hub_versions.each_with_object({}) do |tag_info, h|
+        h[tag_info.name] = tag_info
+      end
+    end
+
+    def extract_incremental
+      cache_tag_info
+      local_version_numbers = local_versions.map(&:number)
+
+      @tag_info_cache.each_value do |tag_info|
+        next if local_version_numbers.include?(tag_info.name)
+        extract_version(tag_info.name, tag_info: tag_info)
+      end
+    end
+
+    def extract_replace(version_number)
+      cache_tag_info
+      tag_info = @tag_info_cache[version_number]
+
+      raise "Version #{version_number} not found on Docker Hub" unless tag_info
+
+      # Remove existing files if present
+      version_obj = Version.new(version_number)
+      if version_obj.exists_locally?
+        FileUtils.rm_f([version_obj.gemfile_path, version_obj.gemfile_lock_path])
+      end
+
+      extract_version(version_number, tag_info: tag_info)
+    end
+
+    def extract_revamp
+      cache_tag_info
+
+      @tag_info_cache.each_value do |tag_info|
+        extract_version(tag_info.name, tag_info: tag_info)
+      end
+    end
+
+    # Extract a limited number of versions for testing
+    def extract_test(limit: 3)
+      cache_tag_info
+
+      # Get the latest N versions
+      versions_to_extract = @tag_info_cache.values.last(limit)
+
+      Logger.header "Test mode: Extracting #{versions_to_extract.size} versions"
+
+      versions_to_extract.each do |tag_info|
+        extract_version(tag_info.name, tag_info: tag_info)
+      end
     end
 
     # Pull a Docker image for a specific version
     def pull_docker_image(version)
-      puts "Pulling #{DOCKER_IMAGE}:#{version}..."
+      Logger.pulling(version)
       system("docker", "pull", "#{DOCKER_IMAGE}:#{version}")
     end
 
     # Extract Gemfile and Gemfile.lock from a Docker container
     def extract_from_container(version)
-      version_obj = Version.new(version)
+      version_obj = Version.new(version, versions_dir: versions_dir)
       FileUtils.mkdir_p(version_obj.directory_path)
 
       extract_script = <<~SCRIPT
@@ -183,28 +294,35 @@ module MetanormaGemfileLocks
       File.write(version_obj.gemfile_lock_path, gemfile_lock_content.strip + "\n")
 
       gemfile_dir = output[/GEMFILE_DIR=(.+)/, 1]
-      puts "  Extracted to v#{version}/ (from #{gemfile_dir})"
+      Logger.extracted(version, from: gemfile_dir)
     end
 
     # Extract a specific version
-    def extract_version(version)
-      version_obj = Version.new(version)
+    def extract_version(version, tag_info: nil)
+      version_obj = Version.new(
+        version,
+        published_at: tag_info&.published_at,
+        parsed_at: Time.now.utc.iso8601,
+        versions_dir: versions_dir
+      )
 
-      # Skip if already extracted locally
-      if version_obj.exists_locally?
-        puts "Skipping v#{version}/ (already exists)"
-        return
+      # Skip incremental if already extracted (unless forced)
+      if @mode == :incremental && version_obj.exists_locally?
+        Logger.skipping(version)
+        return version_obj
       end
 
       pull_docker_image(version)
       extract_from_container(version)
       system("docker", "rmi", "-f", "#{DOCKER_IMAGE}:#{version}", out: File::NULL)
+
+      version_obj
     end
 
     # Extract all versions
     def extract_all
-      versions = fetch_docker_hub_versions
-      puts "Found #{versions.size} versions on Docker Hub"
+      versions = fetch_docker_hub_versions.map(&:name)
+      Logger.info "Found #{versions.size} versions on Docker Hub"
 
       failed_versions = []
 
@@ -212,7 +330,7 @@ module MetanormaGemfileLocks
         begin
           extract_version(version)
         rescue => e
-          puts "  ERROR: #{e.message}"
+          Logger.error e.message
           failed_versions << version
         end
       end
@@ -224,9 +342,9 @@ module MetanormaGemfileLocks
 
     # Get list of locally extracted versions as Version objects
     def local_versions
-      Dir.glob(File.join(File.dirname(VERSIONS_DIR), "v*")).map do |d|
+      Dir.glob(File.join(File.dirname(versions_dir), "v*")).map do |d|
         version_number = File.basename(d)[1..]
-        version = Version.new(version_number)
+        version = Version.new(version_number, versions_dir: versions_dir)
 
         if version.exists_locally?
           version
@@ -239,21 +357,31 @@ module MetanormaGemfileLocks
 
     # Generate index.yaml with all versions
     def generate_index
-      remote_versions = fetch_docker_hub_versions
+      remote_tags = fetch_docker_hub_versions
       local_version_objs = local_versions
 
-      # Update index with local versions, preserving existing timestamps
+      # Build tag info cache
+      tag_info_by_version = remote_tags.each_with_object({}) { |ti, h| h[ti.name] = ti }
+
       local_version_objs.each do |version|
-        existing_timestamp = @index.get_updated_at(version.number)
-        timestamp = existing_timestamp || File.stat(version.directory_path).mtime.iso8601
-        version.instance_variable_set(:@updated_at, timestamp)
+        # Prefer Docker Hub published_at, fallback to existing, then file mtime
+        tag_info = tag_info_by_version[version.number]
+        published_at = tag_info&.published_at ||
+                     @index.get_published_at(version.number) ||
+                     File.stat(version.directory_path).mtime.iso8601
+
+        # Use existing parsed_at or set to now
+        parsed_at = @index.get_parsed_at(version.number) ||
+                    (tag_info ? Time.now.utc.iso8601 : nil)
+
+        version.instance_variable_set(:@published_at, published_at)
+        version.instance_variable_set(:@parsed_at, parsed_at)
         @index.add_version(version)
       end
 
-      missing = remote_versions - local_version_objs.map(&:number)
-
-      @index.save(remote_versions.size, missing)
-      puts "Generated index.yaml with #{local_version_objs.size} versions"
+      missing = remote_tags.map(&:name) - local_version_objs.map(&:number)
+      @index.save(remote_tags.size, missing)
+      Logger.success "Generated index.yaml with #{local_version_objs.size} versions"
     end
 
     # Clean up Docker images in batches of 5, keeping the last one for caching
@@ -265,13 +393,13 @@ module MetanormaGemfileLocks
       to_remove = images[0..-2]
       batches = to_remove.each_slice(5).to_a
 
-      puts "\nCleaning up Docker images..."
+      Logger.header "Cleaning up Docker images"
       batches.each_with_index do |batch, i|
-        puts "  Removing batch #{i + 1}/#{batches.size}..."
+        Logger.section "Removing batch #{i + 1}/#{batches.size}"
         system("docker", "rmi", "-f", *batch, out: File::NULL)
       end
 
-      puts "  Kept for caching: #{images.last}"
+      Logger.info "Kept for caching: #{images.last}"
     end
   end
 end
