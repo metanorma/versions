@@ -4,12 +4,14 @@ require 'thor'
 require 'json'
 
 module Mnenv
+  autoload :HomebrewRepository, 'mnenv/homebrew_repository'
+  autoload :JsonFormatter, 'mnenv/json_formatter'
+  autoload :Homebrew, 'mnenv/homebrew'
+
   class HomebrewCommand < Thor
     desc 'list', 'List all Homebrew versions'
     method_option :format, type: :string, aliases: '-f', default: 'text'
     def list
-      require_relative '../homebrew_repository'
-      require_relative '../json_formatter'
       repo = HomebrewRepository.new
       versions = repo.all
 
@@ -25,7 +27,6 @@ module Mnenv
 
     desc 'refresh', 'Fetch and add new Homebrew versions'
     def refresh
-      require_relative '../homebrew/fetcher'
       fetcher = Homebrew::Fetcher.new
       existing = fetcher.repository.all.map(&:version)
       remote_versions = fetcher.fetch_all
@@ -41,7 +42,6 @@ module Mnenv
 
     desc 'revamp', 'Re-fetch all Homebrew versions'
     def revamp
-      require_relative '../homebrew/fetcher'
       fetcher = Homebrew::Fetcher.new
       versions = fetcher.fetch_and_save
       puts "Revamped #{versions.size} Homebrew versions"
@@ -49,7 +49,6 @@ module Mnenv
 
     desc 'update VERSION', 'Update a specific Homebrew version'
     def update(version)
-      require_relative '../homebrew/fetcher'
       fetcher = Homebrew::Fetcher.new
       versions = fetcher.fetch_all
       target = versions.find { |v| v.version == version }

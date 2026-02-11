@@ -2,8 +2,10 @@
 
 require 'lutaml/model'
 
-require_relative 'models/version'
-require_relative 'models/gemfile_version'
-require_relative 'models/snap_version'
-require_relative 'models/homebrew_version'
-require_relative 'models/chocolatey_version'
+module Mnenv
+  autoload :ArtifactVersion, 'mnenv/models/version'
+  autoload :GemfileVersion, 'mnenv/models/gemfile_version'
+  autoload :SnapVersion, 'mnenv/models/snap_version'
+  autoload :HomebrewVersion, 'mnenv/models/homebrew_version'
+  autoload :ChocolateyVersion, 'mnenv/models/chocolatey_version'
+end

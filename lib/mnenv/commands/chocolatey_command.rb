@@ -4,12 +4,14 @@ require 'thor'
 require 'json'
 
 module Mnenv
+  autoload :ChocolateyRepository, 'mnenv/chocolatey_repository'
+  autoload :JsonFormatter, 'mnenv/json_formatter'
+  autoload :Chocolatey, 'mnenv/chocolatey'
+
   class ChocolateyCommand < Thor
     desc 'list', 'List all Chocolatey versions'
     method_option :format, type: :string, aliases: '-f', default: 'text'
     def list
-      require_relative '../chocolatey_repository'
-      require_relative '../json_formatter'
       repo = ChocolateyRepository.new
       versions = repo.all
 
@@ -25,7 +27,6 @@ module Mnenv
 
     desc 'refresh', 'Fetch and add new Chocolatey versions'
     def refresh
-      require_relative '../chocolatey/fetcher'
       fetcher = Chocolatey::Fetcher.new
       existing = fetcher.repository.all.map(&:version)
       remote_versions = fetcher.fetch_all
@@ -41,7 +42,6 @@ module Mnenv
 
     desc 'revamp', 'Re-fetch all Chocolatey versions'
     def revamp
-      require_relative '../chocolatey/fetcher'
       fetcher = Chocolatey::Fetcher.new
       versions = fetcher.fetch_and_save
       puts "Revamped #{versions.size} Chocolatey versions"
@@ -49,7 +49,6 @@ module Mnenv
 
     desc 'update VERSION', 'Update a specific Chocolatey version'
     def update(version)
-      require_relative '../chocolatey/fetcher'
       fetcher = Chocolatey::Fetcher.new
       versions = fetcher.fetch_all
       target = versions.find { |v| v.version == version }

@@ -4,12 +4,14 @@ require 'thor'
 require 'json'
 
 module Mnenv
+  autoload :GemfileRepository, 'mnenv/gemfile_repository'
+  autoload :JsonFormatter, 'mnenv/json_formatter'
+  autoload :Gemfile, 'mnenv/gemfile'
+
   class GemfileCommand < Thor
     desc 'list', 'List all Gemfile (Ruby) versions'
     method_option :format, type: :string, aliases: '-f', default: 'text'
     def list
-      require_relative '../gemfile_repository'
-      require_relative '../json_formatter'
       repo = GemfileRepository.new
       versions = repo.all
 
@@ -25,21 +27,18 @@ module Mnenv
 
     desc 'refresh', 'Extract new Gemfiles (incremental mode)'
     def refresh
-      require_relative '../gemfile/extractor'
       extractor = Gemfile::Extractor.new(mode: :incremental)
       extractor.run
     end
 
     desc 'revamp', 'Re-extract all Gemfiles'
     def revamp
-      require_relative '../gemfile/extractor'
       extractor = Gemfile::Extractor.new(mode: :revamp)
       extractor.run
     end
 
     desc 'update VERSION', 'Re-extract specific version'
     def update(version)
-      require_relative '../gemfile/extractor'
       extractor = Gemfile::Extractor.new(mode: :replace, target_version: version)
       extractor.run
     end

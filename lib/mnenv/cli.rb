@@ -2,16 +2,20 @@
 
 require 'thor'
 require 'json'
-require_relative 'version'
-require_relative 'models'
-require_relative 'commands'
-require_relative 'json_formatter'
-require_relative 'gemfile_repository'
-require_relative 'snap_repository'
-require_relative 'homebrew_repository'
-require_relative 'chocolatey_repository'
 
 module Mnenv
+  # Autoload constants for lazy loading
+  autoload :VERSION, 'mnenv/version'
+  autoload :GemfileRepository, 'mnenv/gemfile_repository'
+  autoload :SnapRepository, 'mnenv/snap_repository'
+  autoload :HomebrewRepository, 'mnenv/homebrew_repository'
+  autoload :ChocolateyRepository, 'mnenv/chocolatey_repository'
+  autoload :GemfileCommand, 'mnenv/commands/gemfile_command'
+  autoload :SnapCommand, 'mnenv/commands/snap_command'
+  autoload :HomebrewCommand, 'mnenv/commands/homebrew_command'
+  autoload :ChocolateyCommand, 'mnenv/commands/chocolatey_command'
+  autoload :JsonFormatter, 'mnenv/json_formatter'
+
   class Cli < Thor
     package_name 'mnenv'
 
@@ -55,8 +59,6 @@ module Mnenv
 
       case options[:format]
       when 'json'
-        require_relative 'json_formatter'
-        require 'json'
         output = JsonFormatter.format_version(version_obj)
         output['platform'] = platform
         puts JSON.pretty_generate(output)

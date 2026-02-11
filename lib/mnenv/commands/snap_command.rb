@@ -4,12 +4,14 @@ require 'thor'
 require 'json'
 
 module Mnenv
+  autoload :SnapRepository, 'mnenv/snap_repository'
+  autoload :JsonFormatter, 'mnenv/json_formatter'
+  autoload :Snap, 'mnenv/snap'
+
   class SnapCommand < Thor
     desc 'list', 'List all Snap versions'
     method_option :format, type: :string, aliases: '-f', default: 'text'
     def list
-      require_relative '../snap_repository'
-      require_relative '../json_formatter'
       repo = SnapRepository.new
       versions = repo.all
 
@@ -25,8 +27,6 @@ module Mnenv
 
     desc 'refresh', 'Fetch and add new Snap versions (incremental)'
     def refresh
-      require_relative '../snap/fetcher'
-      require_relative '../snap_repository'
       fetcher = Snap::Fetcher.new
       repo = fetcher.repository
 
@@ -50,7 +50,6 @@ module Mnenv
 
     desc 'revamp', 'Re-fetch all Snap versions'
     def revamp
-      require_relative '../snap/fetcher'
       fetcher = Snap::Fetcher.new
       versions = fetcher.fetch_and_save
       puts "Revamped #{versions.size} Snap versions"
@@ -58,7 +57,6 @@ module Mnenv
 
     desc 'update VERSION', 'Update a specific Snap version (all arch/channel combinations)'
     def update(version)
-      require_relative '../snap/fetcher'
       fetcher = Snap::Fetcher.new
       versions = fetcher.fetch_all
       targets = versions.select { |v| v.version == version }
