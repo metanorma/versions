@@ -2,7 +2,7 @@ name: Version Switching Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, test-gha-workflows]
   pull_request:
   workflow_dispatch:
 
