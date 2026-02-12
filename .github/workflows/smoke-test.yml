@@ -54,6 +54,7 @@ jobs:
           cat << 'EOF' > test.adoc
           = Test Document
           Author Name
+          :standoc:
 
           == Section
 
