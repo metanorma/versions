@@ -9,6 +9,7 @@ gem 'moxml'
 gem 'nokogiri'
 gem 'paint'
 gem 'thor'
+gem 'tty-prompt'
 
 group :development do
   gem 'rake'

@@ -5,4 +5,5 @@ require 'thor'
 
 require_relative 'mnenv/models'
 require_relative 'mnenv/commands'
+require_relative 'mnenv/installer'
 require_relative 'mnenv/cli'
