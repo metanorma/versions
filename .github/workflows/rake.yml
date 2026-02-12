@@ -32,4 +32,4 @@ jobs:
         run: bundle exec exe/mnenv gemfile list
 
       - name: Test CLI info command
-        run: bundle exec exe/mnenv info gemfile 1.14.4
+        run: bundle exec exe/mnenv info gemfile 1.14.3

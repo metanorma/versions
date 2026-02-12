@@ -40,4 +40,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'nokogiri'
   spec.add_dependency 'paint'
   spec.add_dependency 'thor', '~> 1.0'
+  spec.add_dependency 'tty-prompt'
 end

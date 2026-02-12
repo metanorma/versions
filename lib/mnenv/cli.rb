@@ -14,7 +14,13 @@ module Mnenv
   autoload :SnapCommand, 'mnenv/commands/snap_command'
   autoload :HomebrewCommand, 'mnenv/commands/homebrew_command'
   autoload :ChocolateyCommand, 'mnenv/commands/chocolatey_command'
+  autoload :InstallCommand, 'mnenv/commands/install_command'
+  autoload :VersionCommand, 'mnenv/commands/version_command'
+  autoload :AvailableCommand, 'mnenv/commands/available_command'
+  autoload :UninstallCommand, 'mnenv/commands/uninstall_command'
   autoload :JsonFormatter, 'mnenv/json_formatter'
+  autoload :ShimManager, 'mnenv/shim_manager'
+  autoload :BinaryRepository, 'mnenv/binary_repository'
 
   class Cli < Thor
     package_name 'mnenv'
@@ -31,6 +37,93 @@ module Mnenv
 
     desc 'chocolatey SUBCOMMAND', 'Manage Chocolatey versions'
     subcommand 'chocolatey', ChocolateyCommand
+
+    # Interactive installation commands
+    desc 'install [VERSION]', 'Install a Metanorma version'
+    method_option :source, type: :string, enum: %w[gemfile binary], default: 'gemfile',
+                           desc: 'Installation source (gemfile or binary)'
+    method_option :interactive, type: :boolean, aliases: '-i', default: false,
+                                desc: 'Interactive mode for version selection'
+    def install(version = nil)
+      cmd = InstallCommand.new
+      cmd.options = Thor::CoreExt::HashWithIndifferentAccess.new(options.merge(version: version))
+      if version.nil? && options[:interactive]
+        cmd.install(nil, options)
+      elsif version == '--list'
+        cmd.list
+      else
+        cmd.install(version, options)
+      end
+    rescue Thor::UndefinedCommandError
+      # Handle --list flag
+      cmd = InstallCommand.new
+      cmd.list
+    end
+
+    desc 'use [VERSION]', 'Set Metanorma version for current shell session'
+    method_option :source, type: :string, enum: %w[gemfile binary],
+                           desc: 'Source type (gemfile or binary)'
+    method_option :interactive, type: :boolean, aliases: '-i', default: false,
+                                desc: 'Interactive mode for version selection'
+    def use(version = nil)
+      cmd = VersionCommand.new
+      cmd.options = options
+      cmd.use(version)
+    end
+
+    desc 'global [VERSION]', 'Set default Metanorma version globally'
+    method_option :source, type: :string, enum: %w[gemfile binary],
+                           desc: 'Source type (gemfile or binary)'
+    method_option :interactive, type: :boolean, aliases: '-i', default: false,
+                                desc: 'Interactive mode for version selection'
+    def global(version = nil)
+      cmd = VersionCommand.new
+      cmd.options = options
+      cmd.global(version)
+    end
+
+    desc 'local [VERSION]', 'Set Metanorma version for current directory'
+    method_option :source, type: :string, enum: %w[gemfile binary],
+                           desc: 'Source type (gemfile or binary)'
+    method_option :interactive, type: :boolean, aliases: '-i', default: false,
+                                desc: 'Interactive mode for version selection'
+    def local(version = nil)
+      cmd = VersionCommand.new
+      cmd.options = options
+      cmd.local(version)
+    end
+
+    desc 'versions', 'List all installed Metanorma versions'
+    def versions
+      cmd = VersionCommand.new
+      cmd.versions
+    end
+
+    desc 'available [SOURCE]', 'List available Metanorma versions to install'
+    method_option :format, type: :string, aliases: '-f', default: 'text',
+                           desc: 'Output format (text or json)'
+    def available(source = nil)
+      cmd = AvailableCommand.new
+      cmd.options = options
+
+      case source
+      when 'gemfile' then cmd.gemfile
+      when 'binary' then cmd.binary
+      when 'all', nil then cmd.all
+      else
+        puts "Error: Unknown source '#{source}'. Available: gemfile, binary, all"
+        exit 1
+      end
+    end
+
+    desc 'uninstall VERSION', 'Uninstall a Metanorma version'
+    method_option :force, type: :boolean, aliases: '-f', default: false,
+                          desc: 'Force uninstallation without confirmation'
+    def uninstall(version)
+      cmd = UninstallCommand.new
+      cmd.options = options
+      cmd.uninstall(version)
+    end
 
     # General commands
     PLATFORM_REPOSITORIES = {
@@ -69,6 +162,7 @@ module Mnenv
         puts "  Parsed: #{version_obj.parsed_at || 'N/A'}"
         version_obj.to_h.each do |k, v|
           next if %w[version published_at parsed_at].include?(k)
+
           puts "  #{k}: #{v}"
         end
       end

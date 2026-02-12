@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'English'
 require_relative '../logger'
 require_relative '../gemfile_repository'
 require_relative './fetcher'
@@ -36,7 +37,7 @@ module Mnenv
 
       def extract_incremental
         remote_versions = fetcher.fetch_all
-        existing_versions = repository.all.select { |v| v.exists_locally? }.map(&:version)
+        existing_versions = repository.all.select(&:exists_locally?).map(&:version)
 
         missing = remote_versions.reject { |v| existing_versions.include?(v.version) }
 
@@ -74,12 +75,18 @@ module Mnenv
 
         cleanup_docker_image(version.version)
 
+        # Update version metadata after successful extraction
+        version.gemfile_exists = true
+        # Store relative paths (relative to data/gemfile directory)
+        version.gemfile_path = "v#{version.version}/Gemfile"
+        version.gemfile_lock_path = "v#{version.version}/Gemfile.lock.archived"
+
         repository.save(version)
       end
 
       def pull_docker_image(version_number)
         system('docker', 'pull', "#{Fetcher::DOCKER_IMAGE}:#{version_number}", out: File::NULL)
-        raise 'Failed to pull Docker image' unless $?.success?
+        raise 'Failed to pull Docker image' unless $CHILD_STATUS.success?
       end
 
       def extract_gemfiles(version)
@@ -89,7 +96,7 @@ module Mnenv
         cmd = "docker run --rm --entrypoint sh #{Fetcher::DOCKER_IMAGE}:#{version.version} -c '#{script}'"
         output = `#{cmd}`
 
-        raise "Extraction failed for #{version.version}" unless $?.success?
+        raise "Extraction failed for #{version.version}" unless $CHILD_STATUS.success?
 
         gemfile, gemfile_lock = parse_gemfile_output(output)
 

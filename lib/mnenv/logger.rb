@@ -48,7 +48,7 @@ module Mnenv
       end
 
       def header(message)
-        puts "\n" + Paint["=== #{message} ===", :bold, :white] + "\n"
+        puts "\n#{Paint["=== #{message} ===", :bold, :white]}\n"
       end
 
       def section(message)

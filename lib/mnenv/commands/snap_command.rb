@@ -63,7 +63,7 @@ module Mnenv
 
       if targets.empty?
         puts "Snap version #{version} not found in current channel-map"
-        puts "Note: Historical versions no longer in Snap API cannot be updated"
+        puts 'Note: Historical versions no longer in Snap API cannot be updated'
         exit 1
       end
 
