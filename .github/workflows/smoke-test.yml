@@ -53,14 +53,14 @@ jobs:
           cd /tmp/test-mn
           cat << 'EOF' > test.adoc
           = Test Document
+          :mn-document-class: standoc
           Author Name
-          :standoc:
 
           == Section
 
           This is a test.
           EOF
-          metanorma compile test.adoc
+          metanorma compile test.adoc --type standoc
           ls -la test.*
 
       - name: Upload test output
