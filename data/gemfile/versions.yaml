@@ -1,7 +1,7 @@
 ---
 metadata:
   generated_at: '2026-02-12T13:08:46Z'
-  source: :gemfile
+  source: gemfile
   count: 124
   latest_version: 1.14.4
 versions:
