@@ -40,6 +40,11 @@ jobs:
           bundle install
           bundle exec rake install
 
+      - name: Add mnenv to PATH
+        run: |
+          echo "$HOME/.mnenv/shims" >> $GITHUB_PATH
+          export PATH="$HOME/.mnenv/shims:$PATH"
+
       - name: Fetch Snap versions
         run: |
           VERSION="${{ github.event.inputs.version }}"
