@@ -8,13 +8,15 @@ on:
       mode:
         description: 'Fetch mode'
         required: false
-        default: 'update'
+        default: 'refresh'
         type: choice
         options:
+          - refresh
+          - revamp
           - update
       version:
-        description: 'Version to update'
-        required: true
+        description: 'Version to update (required for update mode)'
+        required: false
         type: string
 
 permissions:
@@ -35,20 +37,36 @@ jobs:
       - name: Install mnenv
         run: |
           # Install mnenv from GitHub source
-          git clone --depth 1 https://github.com/metanorma/mnenv.git /tmp/mnenv
+          git clone --depth 1 --branch implement-snapcraft-revamp https://github.com/metanorma/mnenv.git /tmp/mnenv
           cd /tmp/mnenv
           bundle install
           bundle exec rake install
 
-      - name: Add mnenv to PATH
-        run: |
-          echo "$HOME/.mnenv/shims" >> $GITHUB_PATH
-          export PATH="$HOME/.mnenv/shims:$PATH"
+      - name: Install snapcraft
+        run: sudo snap install snapcraft --classic
 
       - name: Fetch Snap versions
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.METANORMA_SNAPCRAFT_TOKEN }}
         run: |
-          VERSION="${{ github.event.inputs.version }}"
-          mnenv snap --data-dir="$PWD/data" update "$VERSION"
+          MODE="${{ github.event.inputs.mode || 'refresh' }}"
+          VERSION="${{ github.event.inputs.version || '' }}"
+
+          case "$MODE" in
+            refresh)
+              mnenv snap --data-dir="$PWD/data" refresh
+              ;;
+            revamp)
+              mnenv snap --data-dir="$PWD/data" revamp
+              ;;
+            update)
+              if [ -z "$VERSION" ]; then
+                echo "Error: version required"
+                exit 1
+              fi
+              mnenv snap --data-dir="$PWD/data" update "$VERSION"
+              ;;
+          esac
 
       - name: Detect material changes
         id: detect-changes
