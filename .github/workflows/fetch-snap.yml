@@ -37,7 +37,7 @@ jobs:
       - name: Install mnenv
         run: |
           # Install mnenv from GitHub source
-          git clone --depth 1 --branch implement-snapcraft-revamp https://github.com/metanorma/mnenv.git /tmp/mnenv
+          git clone --depth 1 https://github.com/metanorma/mnenv.git /tmp/mnenv
           cd /tmp/mnenv
           bundle install
           bundle exec rake install
