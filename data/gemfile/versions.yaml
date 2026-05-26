@@ -1,9 +1,9 @@
 ---
 metadata:
-  generated_at: '2026-03-11T04:04:35Z'
+  generated_at: '2026-05-26T01:50:43Z'
   source: :gemfile
-  count: 126
-  latest_version: 1.15.1
+  count: 131
+  latest_version: 1.16.3
 versions:
 - version: 1.1.6
   published_at: '2019-04-07T02:16:57Z'
@@ -761,3 +761,33 @@ versions:
   gemfile_exists: true
   gemfile_path: v1.15.1/Gemfile
   gemfile_lock_path: v1.15.1/Gemfile.lock.archived
+- version: 1.15.3
+  published_at: '2026-03-17T05:16:28Z'
+  parsed_at: '2026-05-26T01:48:27Z'
+  gemfile_exists: true
+  gemfile_path: v1.15.3/Gemfile
+  gemfile_lock_path: v1.15.3/Gemfile.lock.archived
+- version: 1.15.5
+  published_at: '2026-03-31T15:35:50Z'
+  parsed_at: '2026-05-26T01:48:55Z'
+  gemfile_exists: true
+  gemfile_path: v1.15.5/Gemfile
+  gemfile_lock_path: v1.15.5/Gemfile.lock.archived
+- version: 1.15.6
+  published_at: '2026-04-16T21:22:33Z'
+  parsed_at: '2026-05-26T01:49:33Z'
+  gemfile_exists: true
+  gemfile_path: v1.15.6/Gemfile
+  gemfile_lock_path: v1.15.6/Gemfile.lock.archived
+- version: 1.15.7
+  published_at: '2026-04-28T03:52:25Z'
+  parsed_at: '2026-05-26T01:50:11Z'
+  gemfile_exists: true
+  gemfile_path: v1.15.7/Gemfile
+  gemfile_lock_path: v1.15.7/Gemfile.lock.archived
+- version: 1.16.3
+  published_at: '2026-05-25T19:50:08Z'
+  parsed_at: '2026-05-26T01:50:43Z'
+  gemfile_exists: true
+  gemfile_path: v1.16.3/Gemfile
+  gemfile_lock_path: v1.16.3/Gemfile.lock.archived
