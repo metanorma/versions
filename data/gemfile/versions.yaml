@@ -1,9 +1,9 @@
 ---
 metadata:
-  generated_at: '2026-07-09T00:53:34Z'
+  generated_at: '2026-07-24T00:45:27Z'
   source: :gemfile
-  count: 133
-  latest_version: 1.16.8
+  count: 134
+  latest_version: 1.16.9
 versions:
 - version: 1.1.6
   published_at: '2019-04-07T02:16:57Z'
@@ -803,3 +803,9 @@ versions:
   gemfile_exists: true
   gemfile_path: v1.16.8/Gemfile
   gemfile_lock_path: v1.16.8/Gemfile.lock.archived
+- version: 1.16.9
+  published_at: '2026-07-21T14:39:57Z'
+  parsed_at: '2026-07-24T00:45:27Z'
+  gemfile_exists: true
+  gemfile_path: v1.16.9/Gemfile
+  gemfile_lock_path: v1.16.9/Gemfile.lock.archived
