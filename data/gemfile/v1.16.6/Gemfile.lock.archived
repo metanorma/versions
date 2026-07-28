@@ -413,14 +413,16 @@ GEM
       glossarist (~> 2.8, >= 2.8.16)
       liquid
       metanorma-utils
-    metanorma-plugin-lutaml (0.7.49)
+    metanorma-plugin-lutaml (0.7.50)
       asciidoctor
       coradoc (~> 1.1.8)
+      ea (~> 0.2)
       expressir (~> 2.3, >= 2.3.5)
       isodoc
       liquid
-      lutaml (~> 0.10, >= 0.10.12)
+      lutaml-lml
       lutaml-model (~> 0.8.4)
+      lutaml-uml (~> 0.5)
       ogc-gml (~> 1.1)
       relaton-cli
     metanorma-plugin-plantuml (1.0.15)
