@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/metanorma/versions/schemas/gemfile-version.schema.json",
+  "title": "Gemfile source version entry",
+  "description": "One entry under data/gemfile/versions.yaml::versions[]. Validates the per-version object shape; the top-level wrapper (metadata + versions[]) is validated separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "published_at",
+    "parsed_at",
+    "gemfile_exists",
+    "gemfile_path",
+    "gemfile_lock_path"
+  ],
+  "allOf": [
+    {
+      "if": { "properties": { "gemfile_exists": { "const": true } }, "required": ["gemfile_exists"] },
+      "then": {
+        "properties": {
+          "published_at": { "type": "string", "format": "date-time" },
+          "gemfile_path": { "type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+/Gemfile$" },
+          "gemfile_lock_path": { "type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+/Gemfile\\.lock\\.archived$" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "gemfile_exists": { "const": false } }, "required": ["gemfile_exists"] },
+      "then": {
+        "properties": {
+          "published_at": { "type": ["string", "null"] },
+          "gemfile_path": { "type": ["string", "null"] },
+          "gemfile_lock_path": { "type": ["string", "null"] }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "SemVer-ish version string, e.g. '1.16.9'."
+    },
+    "published_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 timestamp for the Docker-channel publication. Null when gemfile_exists is false."
+    },
+    "parsed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp for when mnenv extracted this entry."
+    },
+    "gemfile_exists": {
+      "type": "boolean"
+    },
+    "gemfile_path": {
+      "type": ["string", "null"],
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+/Gemfile$",
+      "description": "Null when gemfile_exists is false."
+    },
+    "gemfile_lock_path": {
+      "type": ["string", "null"],
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+/Gemfile\\.lock\\.archived$",
+      "description": "Null when gemfile_exists is false."
+    },
+    "rubygems_created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional. RubyGems.org created_at for the underlying metanorma-cli gem; distinct from published_at (which is the Docker channel)."
+    },
+    "release_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "published_via",
+        "workflow_run_id",
+        "workflow_url",
+        "annotation"
+      ],
+      "properties": {
+        "published_via": {
+          "type": "string",
+          "enum": ["workflow", "manual", "unknown"]
+        },
+        "workflow_run_id": {
+          "type": ["integer", "null"],
+          "description": "GitHub Actions run-id when published_via=='workflow', null otherwise."
+        },
+        "workflow_url": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "description": "GitHub Actions run URL when published_via=='workflow', null otherwise."
+        },
+        "annotation": {
+          "type": "string",
+          "description": "Free-form note explaining the classification."
+        }
+      }
+    }
+  }
+}

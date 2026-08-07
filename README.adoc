@@ -82,6 +82,44 @@ Additional fields per source:
 * **Chocolatey** - `package_name`, `is_pre_release`
 * **Binary** - `tag_name`, `html_url`, `platforms` (array with `name`, `arch`, `variant`, `format`, `filename`)
 
+=== Optional provenance fields
+
+Any version object may carry the following optional fields:
+
+* `rubygems_created_at` — the RubyGems.org `created_at` timestamp for the underlying `metanorma-cli` gem release, for correlation with the channel-specific `published_at`.
+* `release_provenance` — a sub-hash describing how the `metanorma-cli` release was published:
++
+[source,yaml]
+----
+release_provenance:
+  published_via: workflow                                                       # 'workflow' | 'manual' | 'unknown'
+  workflow_run_id: 28325008101                                                  # GitHub Actions run-id when 'workflow', null otherwise
+  workflow_url: https://github.com/metanorma/metanorma-cli/actions/runs/28325008101
+  annotation: 'metanorma-cli release workflow (normal path)'
+----
+
+Population paths:
+
+* Forward — the `metanorma/ci` `rubygems-release.yml` post-publish step writes the field at release time (planned, tracked in metanorma/ci#367 follow-up).
+* Retroactive — data commits annotate known anomalies (e.g., manual pushes during infrastructure work).
+
+Consumers unaware of these fields safely ignore them (mnenv uses `YAML.safe_load` with selective field access).
+
+=== Schema validation
+
+The shape of `data/gemfile/versions.yaml` is enforced by JSON Schemas under `schemas/`:
+
+* `schemas/gemfile-versions.schema.json` — top-level wrapper (metadata + versions[])
+* `schemas/gemfile-version.schema.json`  — one entry under versions[]
+
+Validated by `.github/scripts/validate_versions.py`, run from the `validate-versions` workflow on every PR touching the data file or schemas. Violations (typos, missing required fields, malformed timestamps) fail CI before merge.
+
+Run locally:
+
+ pip install jsonschema PyYAML referencing
+ python3 .github/scripts/validate_versions.py
+
+
 == Usage
 
 === Using Gemfile files for a version
