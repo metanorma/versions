@@ -1,0 +1,40 @@
+name: validate-versions
+
+# Validates data/gemfile/versions.yaml against schemas/gemfile-versions.schema.json
+# Catches typos, missing required fields, malformed timestamps, and shape drift
+# before they land on main. Per ci#367 (release_provenance schema).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - data/gemfile/versions.yaml
+      - schemas/**
+      - .github/scripts/validate_versions.py
+      - .github/workflows/validate-versions.yml
+  pull_request:
+    paths:
+      - data/gemfile/versions.yaml
+      - schemas/**
+      - .github/scripts/validate_versions.py
+      - .github/workflows/validate-versions.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator deps
+        run: pip install --no-input jsonschema==4.23.0 PyYAML==6.0.2
+
+      - name: Validate gemfile versions
+        run: python3 .github/scripts/validate_versions.py

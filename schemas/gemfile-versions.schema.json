@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/metanorma/versions/schemas/gemfile-versions.schema.json",
+  "title": "Gemfile versions register",
+  "description": "Top-level shape of data/gemfile/versions.yaml.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["metadata", "versions"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generated_at", "source", "count", "latest_version"],
+      "properties": {
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source": { "type": "string" },
+        "count": { "type": "integer", "minimum": 0 },
+        "latest_version": { "type": "string" }
+      }
+    },
+    "versions": {
+      "type": "array",
+      "items": { "$ref": "gemfile-version.schema.json" }
+    }
+  }
+}
