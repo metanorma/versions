@@ -87,6 +87,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Create Pull Request
+        id: create-pr
         if: steps.detect-changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
@@ -108,3 +109,26 @@ jobs:
             ${{ steps.detect-changes.outputs.material_change == 'true' && 'material-change' || '' }}
           draft: ${{ steps.detect-changes.outputs.material_change == 'false' }}
           delete-branch: true
+
+      # Auto-merge material changes once CI (validate-versions schema check)
+      # passes. Non-material changes stay as drafts for human triage.
+      # Consolidation target: ci#379 generic-automerge.yml reusable, so this
+      # block isn't duplicated across fetch-binary/chocolatey/homebrew/snap.
+      - name: Wait for checks and auto-merge
+        if: steps.detect-changes.outputs.material_change == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.create-pr.outputs.pull-request-number }}"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR created — skipping auto-merge"
+            exit 0
+          fi
+
+          echo "Waiting for checks on PR #$PR_NUMBER..."
+          if gh pr checks "$PR_NUMBER" --watch --interval 30; then
+            echo "All checks passed — merging."
+            gh pr merge "$PR_NUMBER" --squash --delete-branch
+          else
+            echo "::warning::checks failed on PR #$PR_NUMBER — leaving for manual review"
+          fi
