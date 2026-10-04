@@ -1,9 +1,9 @@
 ---
 metadata:
-  generated_at: '2026-02-10T11:24:55Z'
-  source: chocolatey
-  count: 161
-  latest_version: 1.14.4
+  generated_at: '2026-10-04T01:27:57Z'
+  source: :chocolatey
+  count: 162
+  latest_version: 1.17.0
 versions:
 - version: 1.0.1
   published_at:
@@ -806,6 +806,11 @@ versions:
   package_name: metanorma
   is_pre_release: false
 - version: 1.14.4
+  published_at:
+  parsed_at:
+  package_name: metanorma
+  is_pre_release: false
+- version: 1.17.0
   published_at:
   parsed_at:
   package_name: metanorma
