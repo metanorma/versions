@@ -63,6 +63,23 @@ jobs:
             mnenv gemfile --data-dir="$PWD/data" refresh
           fi
 
+      - name: Append the Ruby 4 bundled-gem declaration block
+        run: |
+          # The resolver only includes bundled gems that some gem declares;
+          # the user-facing templates must bundle the whole required set
+          # regardless of the graph (versions#31, metanorma#669).
+          block='gem "base64"
+          gem "benchmark"
+          gem "csv"
+          gem "tsort"
+          gem "uri"
+          gem "ostruct"
+          gem "win32ole", platforms: %i[windows]
+          gem "faraday-retry"'
+          for f in data/gemfile/*/Gemfile; do
+            grep -q '^gem "tsort"' "$f" || printf '\n# Ruby 4 bundled gems (versions#31)\n%s\n' "$block" >> "$f"
+          done
+
       - name: Detect material changes
         id: detect-changes
         run: |
