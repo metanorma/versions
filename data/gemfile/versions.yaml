@@ -1,9 +1,9 @@
 ---
 metadata:
-  generated_at: '2026-08-19T00:20:34Z'
+  generated_at: '2026-11-10T10:48:13Z'
   source: :gemfile
-  count: 136
-  latest_version: 1.17.0
+  count: 138
+  latest_version: 1.18.4
 versions:
 - version: 1.1.6
   published_at: '2019-04-07T02:16:57Z'
@@ -802,7 +802,7 @@ versions:
     published_via: workflow
     workflow_run_id: 28325008101
     workflow_url: https://github.com/metanorma/metanorma-cli/actions/runs/28325008101
-    annotation: 'rubygems-release.yml post-publish writer (ci#367)'
+    annotation: rubygems-release.yml post-publish writer (ci#367)
 - version: 1.16.8
   published_at: '2026-07-07T06:09:15Z'
   parsed_at: '2026-07-09T00:53:34Z'
@@ -812,9 +812,10 @@ versions:
   rubygems_created_at: '2026-07-07T01:03:18Z'
   release_provenance:
     published_via: manual
-    workflow_run_id: null
-    workflow_url: null
-    annotation: 'OIDC/Trusted-Publisher rework period, manual gem push (2026-08-02 ci#367 investigation)'
+    workflow_run_id:
+    workflow_url:
+    annotation: OIDC/Trusted-Publisher rework period, manual gem push (2026-08-02
+      ci#367 investigation)
 - version: 1.16.9
   published_at: '2026-07-21T14:39:57Z'
   parsed_at: '2026-08-03T00:50:38Z'
@@ -824,9 +825,10 @@ versions:
   rubygems_created_at: '2026-07-20T15:41:35Z'
   release_provenance:
     published_via: manual
-    workflow_run_id: null
-    workflow_url: null
-    annotation: 'OIDC/Trusted-Publisher rework period, manual gem push (2026-08-02 ci#367 investigation)'
+    workflow_run_id:
+    workflow_url:
+    annotation: OIDC/Trusted-Publisher rework period, manual gem push (2026-08-02
+      ci#367 investigation)
 - version: 1.16.10
   published_at: '2026-08-04T00:18:21Z'
   parsed_at: '2026-08-07T13:02:56Z'
@@ -839,3 +841,15 @@ versions:
   gemfile_exists: true
   gemfile_path: v1.17.0/Gemfile
   gemfile_lock_path: v1.17.0/Gemfile.lock.archived
+- version: 1.18.2
+  published_at: '2026-10-31T09:39:38Z'
+  parsed_at: '2026-11-10T10:47:48Z'
+  gemfile_exists: true
+  gemfile_path: v1.18.2/Gemfile
+  gemfile_lock_path: v1.18.2/Gemfile.lock.archived
+- version: 1.18.4
+  published_at: '2026-11-09T01:58:38Z'
+  parsed_at: '2026-11-10T10:48:13Z'
+  gemfile_exists: true
+  gemfile_path: v1.18.4/Gemfile
+  gemfile_lock_path: v1.18.4/Gemfile.lock.archived

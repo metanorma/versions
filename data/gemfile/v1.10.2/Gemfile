@@ -3,3 +3,13 @@ source "https://rubygems.org"
 gem "sassc"
 
 gem "metanorma-cli", "= 1.10.2"
+
+# Ruby 4 bundled gems (versions#31)
+gem "base64"
+gem "benchmark"
+gem "csv"
+gem "tsort"
+gem "uri"
+gem "ostruct"
+gem "win32ole", platforms: %i[windows]
+gem "faraday-retry"
