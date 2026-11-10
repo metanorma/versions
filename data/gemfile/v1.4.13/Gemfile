@@ -2,3 +2,13 @@ source "https://rubygems.org"
 source "https://rubygems.pkg.github.com/metanorma"
 
 gem "metanorma-cli", "1.4.13"
+
+# Ruby 4 bundled gems (versions#31)
+gem "base64"
+gem "benchmark"
+gem "csv"
+gem "tsort"
+gem "uri"
+gem "ostruct"
+gem "win32ole", platforms: %i[windows]
+gem "faraday-retry"
