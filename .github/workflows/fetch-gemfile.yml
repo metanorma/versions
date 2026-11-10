@@ -34,7 +34,13 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4'
+          # Extract under Ruby 4.0 so the shipped Gemfiles carry the Ruby-4
+          # bundled-gem set and Bundler 4 lock metadata (versions#31, #30;
+          # owner decision metanorma#669). The templates resolve identically
+          # for Ruby 3.x consumers - the added gems are published releases
+          # installable on 3.x.
+          ruby-version: '4.0'
+          bundler: latest
 
       - name: Install mnenv
         run: |
