@@ -1026,6 +1026,7 @@ GEM
     timeout (0.6.1)
     tokenizer (0.3.0)
     track_open_instances (0.1.15)
+    tsort (0.2.0)
     twitter_cldr (6.14.0)
       base64
       camertron-eprun
@@ -1138,7 +1139,15 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  base64
+  benchmark
+  csv
+  faraday-retry
   metanorma-cli (= 1.18.4)
+  ostruct
+  tsort
+  uri
+  win32ole
 
 CHECKSUMS
   activesupport (8.1.4.1) sha256=16ac4f341ca65c85a1fcdb8ac73f68891aae9e3c4a6f9c3a27daed8b00017ed7
@@ -1156,6 +1165,7 @@ CHECKSUMS
   bindata (2.5.1) sha256=53186a1ec2da943d4cb413583d680644eb810aacbf8902497aac8f191fad9e58
   brotli (0.9.2) sha256=8d5e3b8f267bad385c53d73e1575e617567eee1a05e7aaee1c08bdeb8abf3024
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
+  bundler (4.0.20) sha256=7978a8ac648767f5e635bc522445b79e80a52b907a39a36c2d8085ed6bc762ae
   cabriolet (0.2.4) sha256=fde76321a5b7ee5506581c01aeac44e4476332bc64fe7ae1a07a72227a318e9b
   camertron-eprun (2.0.0) sha256=e148a3035332609433d096401650f199dd6ce0031af3edb603dc44ea21aad3d5
   canon (0.3.125) sha256=745ea672f924bfc8312c5dde57a8c268b53082d5767e2aa6789855739421a3cc
@@ -1432,6 +1442,7 @@ CHECKSUMS
   timeout (0.6.1) sha256=78f57368a7e7bbadec56971f78a3f5ecbcfb59b7fcbb0a3ed6ddc08a5094accb
   tokenizer (0.3.0) sha256=f3fea578e7a2f9a9ae22de432ea1254e22ed1fc2e58e0ee670a0273582f51520
   track_open_instances (0.1.15) sha256=7f0e48821e6b4c881daaa40fb1583e308937c22a9c84883c150b399c3b5c3029
+  tsort (0.2.0) sha256=9650a793f6859a43b6641671278f79cfead60ac714148aabe4e3f0060480089f
   twitter_cldr (6.14.0) sha256=5d18c23097008bcda542a260535766fdfc49d982d5eedf2486d19f368aa8c7a4
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
   tzinfo-data (1.2026.6) sha256=fefda3d5a0f26730d7464f2853ceb021cb2eb1f1f504da2108ea1ce5d5309670
