@@ -2,8 +2,8 @@
 metadata:
   generated_at: '2026-11-10T10:48:13Z'
   source: :gemfile
-  count: 138
-  latest_version: 1.18.4
+  count: 139
+  latest_version: 1.18.6
 versions:
 - version: 1.1.6
   published_at: '2019-04-07T02:16:57Z'
@@ -853,3 +853,15 @@ versions:
   gemfile_exists: true
   gemfile_path: v1.18.4/Gemfile
   gemfile_lock_path: v1.18.4/Gemfile.lock.archived
+- version: 1.18.6
+  published_at: null
+  parsed_at: '2026-11-12T12:55:48Z'
+  gemfile_exists: false
+  gemfile_path: null
+  gemfile_lock_path: null
+  rubygems_created_at: '2026-11-12T12:55:00Z'
+  release_provenance:
+    published_via: workflow
+    workflow_run_id: 43221629993
+    workflow_url: https://github.com/metanorma/metanorma-cli/actions/runs/43221629993
+    annotation: 'rubygems-release.yml post-publish writer (ci#367)'
