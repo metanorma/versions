@@ -80,6 +80,19 @@ jobs:
             grep -q '^gem "tsort"' "$f" || printf '\n# Ruby 4 bundled gems (versions#31)\n%s\n' "$block" >> "$f"
           done
 
+      - name: Re-lock the appended bundled-gem block
+        run: |
+          # The block is appended after mnenv extracts the pair, so the
+          # captured lock's DEPENDENCIES predates it and the published
+          # pair refuses a frozen install (versions#63). Re-lock every
+          # extracted pair against its own appended Gemfile.
+          for d in data/gemfile/*/; do
+            [ -f "$d/Gemfile" ] && [ -f "$d/Gemfile.lock.archived" ] || continue
+            cp "$d/Gemfile.lock.archived" "$d/Gemfile.lock"
+            (cd "$d" && bundle lock)
+            mv "$d/Gemfile.lock" "$d/Gemfile.lock.archived"
+          done
+
       - name: Detect material changes
         id: detect-changes
         run: |
