@@ -1,9 +1,9 @@
 ---
 metadata:
-  generated_at: '2026-02-10T11:24:35Z'
-  source: homebrew
-  count: 112
-  latest_version: 1.13.2
+  generated_at: '2026-11-13T00:40:59Z'
+  source: :homebrew
+  count: 113
+  latest_version: 1.17.0
 versions:
 - version: 1.1.0
   published_at:
@@ -565,3 +565,8 @@ versions:
   parsed_at:
   tag_name: v1.13.2
   commit_sha: 99b12631fa5b5c4a078e0cdf7dd4376dd7587329
+- version: 1.17.0
+  published_at:
+  parsed_at:
+  tag_name: v1.17.0
+  commit_sha: a3bacf1282bf1ad284100f5c424a58daa0faf315
